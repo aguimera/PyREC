@@ -19,6 +19,7 @@ import PhyREC.PyGFETdb.DataStructures as FETdata
 import PhyREC.PyGFETdb.AnalyzeData as FETana
 from PhyREC.PyGFETdb.DataClass import PyFETPlotDataClass as FETplt
 from PhyREC.PyGFETdb.DataClass import DataCharAC as FETcl
+import pickle
 
 from multiprocessing import Pool
 
@@ -210,7 +211,13 @@ def GetGtechChar(FileInput, ExcludeCh=(None, )):
 def Calibrate(CalFile, FbData, VgsExp, CalTime=(60*pq.s, None),
               Regim='hole', PlotChar=True, CalType='interp'):
 
-    DCChar, _ = FETdata.LoadDataFromFile(CalFile)
+    try:
+        DCChar, _ = FETdata.LoadDataFromFile(CalFile)
+    except:
+        DCChar = pickle.load(open(CalFile,'rb'), encoding='latin1' )
+        FETana.CheckIsOK(DCChar, RdsRange=[400, 40e3])
+        FETana.CalcGM(DCChar)
+    
     DataTrts = {}
     for tn, datadic in DCChar.items():
         DataTrts[tn] = (FETcl(datadic),)
